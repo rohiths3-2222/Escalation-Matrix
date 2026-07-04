@@ -40,16 +40,17 @@
   .chip{background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:5px 11px;color:var(--text-dim);display:flex;align-items:center;gap:6px;}
   .chip .dot{width:6px;height:6px;border-radius:50%;background:var(--live);box-shadow:0 0 0 3px var(--live-dim);animation:pulseDot 2.2s infinite;}
 
-  @keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
-  @keyframes pulseDot{0%,100%{box-shadow:0 0 0 3px var(--live-dim);}70%{box-shadow:0 0 0 7px rgba(45,212,167,0);}}
-  @keyframes resultIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
-  .topbar{animation:fadeUp .5s ease both;}
-  .status-strip{animation:fadeUp .5s ease .1s both;}
-  .search-block{animation:fadeUp .5s ease .2s both;}
-  .hint{animation:fadeUp .5s ease .28s both;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes pulseDot{0%,100%{box-shadow:0 0 0 3px var(--live-dim);}70%{box-shadow:0 0 0 8px rgba(45,212,167,0);}}
+  @keyframes resultIn{from{opacity:0;transform:translateY(16px) scale(.985);}to{opacity:1;transform:translateY(0) scale(1);}}
+  .topbar{animation:fadeUp .6s cubic-bezier(.2,.8,.2,1) both;}
+  .status-strip{animation:fadeUp .6s cubic-bezier(.2,.8,.2,1) .12s both;}
+  .search-block{animation:fadeUp .6s cubic-bezier(.2,.8,.2,1) .24s both;}
+  .hint{animation:fadeUp .6s cubic-bezier(.2,.8,.2,1) .34s both;}
 
   /* search */
-  .search-block{position:relative;margin-bottom:8px;}
+  .search-block{position:relative;margin-bottom:8px;z-index:30;}
+  #resultArea{position:relative;z-index:1;}
   .search-input{width:100%;background:var(--surface);border:1.5px solid var(--border);color:var(--text);font-size:15px;padding:15px 44px 15px 16px;border-radius:12px;font-family:'IBM Plex Mono',monospace;outline:none;transition:border-color .15s;}
   .search-input:focus{border-color:var(--accent);}
   .search-input::placeholder{color:var(--text-dim);font-family:'Inter',sans-serif;}
@@ -387,7 +388,7 @@ function rung(num, label, nameVal, mailVal, phoneVal){
 function hubHTML(h, badgeLabel='Hub'){
   if(!h) return emptyState();
   return `
-    <div style="animation:resultIn .35s ease both;">
+    <div style="animation:resultIn .5s cubic-bezier(.2,.8,.2,1) both;">
     <div class="result-head">
       <h2>${esc(h.hub)}</h2>
       <span class="result-type">${esc(badgeLabel)}</span>
@@ -413,7 +414,7 @@ function mhCard(label, name, mail, wide=false){
 function zoneTeamHTML(m, badgeLabel){
   if(!m) return emptyState();
   return `
-    <div style="animation:resultIn .35s ease both;">
+    <div style="animation:resultIn .5s cubic-bezier(.2,.8,.2,1) both;">
     <div class="result-head">
       <h2>${esc(m.hub)}</h2>
       <span class="result-type">${esc(badgeLabel)}</span>
