@@ -261,14 +261,17 @@ async function sha256Hex(str){
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
   return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
 }
-function normHeader(h){ return String(h||'').toLowerCase().replace(/[^a-z0-9]/g,''); }
-function findCol(headers, keywordsAll, keywordsAny){
-  // returns header string matching: contains ALL of keywordsAll, and ANY of keywordsAny (if given)
+function tokenize(h){ return String(h||'').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean); }
+function findCol(headers, keywordsAll, keywordsAny, excludeTokens){
+  // returns header string whose TOKENS (not raw substrings) contain ALL of keywordsAll,
+  // ANY of keywordsAny (if given), and NONE of excludeTokens (if given).
+  // Token matching avoids false hits like "Hub Name" matching "am" (which is a substring of "name").
   for(const h of headers){
-    const n = normHeader(h);
-    const okAll = keywordsAll.every(k=>n.includes(k));
-    const okAny = !keywordsAny || keywordsAny.some(k=>n.includes(k));
-    if(okAll && okAny) return h;
+    const tokens = tokenize(h);
+    const okAll = keywordsAll.every(k=>tokens.includes(k));
+    const okAny = !keywordsAny || keywordsAny.some(k=>tokens.includes(k));
+    const okExclude = !excludeTokens || excludeTokens.every(k=>!tokens.includes(k));
+    if(okAll && okAny && okExclude) return h;
   }
   return null;
 }
@@ -521,21 +524,21 @@ function sheetToRows(wb, nameGuesses, excludeNames){
 function mapHubRows(rows){
   return rows.map(row=>{
     const headers = Object.keys(row);
-    const get = (all, any)=>{ const c = findCol(headers, all, any); return c ? row[c] : ''; };
+    const get = (all, any, exclude)=>{ const c = findCol(headers, all, any, exclude); return c ? row[c] : ''; };
     return {
       hub: get(['hub','name']) || get(['hub']),
-      l1_name: get(['name'],['hi','tl','hmt']),
-      l1_mail: get(['mail'],['hi','tl','hmt']),
-      l1_phone: get(['phone'],['hi','tl','hmt']) || get(['mobile'],['hi','tl','hmt']),
-      l2_name: get(['name'],['am']),
-      l2_mail: get(['mail'],['am']),
-      l2_phone: get(['phone'],['am']) || get(['mobile'],['am']),
-      l3_name: get(['name'],['rm']),
-      l3_mail: get(['mail'],['rm']),
-      l3_phone: get(['phone'],['rm']) || get(['mobile'],['rm']),
-      l4_name: get(['name'],['gm']),
-      l4_mail: get(['mail'],['gm']),
-      l4_phone: get(['phone'],['gm']) || get(['mobile'],['gm']),
+      l1_name: get(['name'],['hi','tl','hmt'],['ext']),
+      l1_mail: get(['mail'],['hi','tl','hmt'],['ext']),
+      l1_phone: get(['phone'],['hi','tl','hmt'],['ext']) || get(['mobile'],['hi','tl','hmt'],['ext']),
+      l2_name: get(['name'],['am'],['ext']),
+      l2_mail: get(['mail'],['am'],['ext']),
+      l2_phone: get(['phone'],['am'],['ext']) || get(['mobile'],['am'],['ext']),
+      l3_name: get(['name'],['rm'],['ext']),
+      l3_mail: get(['mail'],['rm'],['ext']),
+      l3_phone: get(['phone'],['rm'],['ext']) || get(['mobile'],['rm'],['ext']),
+      l4_name: get(['name'],['gm'],['ext']),
+      l4_mail: get(['mail'],['gm'],['ext']),
+      l4_phone: get(['phone'],['gm'],['ext']) || get(['mobile'],['gm'],['ext']),
       ext_name: get(['name'],['ext']),
       ext_mail: get(['mail'],['ext']),
       ext_phone: get(['phone'],['ext']) || get(['mobile'],['ext']),
@@ -546,7 +549,7 @@ function mapHubRows(rows){
 function mapZoneRows(rows){
   return rows.map(row=>{
     const headers = Object.keys(row);
-    const get = (all, any)=>{ const c = findCol(headers, all, any); return c ? row[c] : ''; };
+    const get = (all, any, exclude)=>{ const c = findCol(headers, all, any, exclude); return c ? row[c] : ''; };
     return {
       hub: get(['hub','name']) || get(['hub']),
       zone: get(['zone']),
@@ -559,8 +562,8 @@ function mapZoneRows(rows){
       sc_name: get(['name'],['sc']),
       leader_name: get(['name'],['leader']),
       leader_mail: get(['mail'],['leader']),
-      poc_name: get(['name'],['poc']),
-      poc_mail: get(['mail'],['poc']),
+      poc_name: get(['name'],['poc'],['irt']),
+      poc_mail: get(['mail'],['poc'],['irt']),
       irt_name: get(['name'],['irt']),
       irt_mail: get(['mail'],['irt']),
       group_mail: get(['group','mail']),
