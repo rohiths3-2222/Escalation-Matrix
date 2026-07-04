@@ -35,6 +35,15 @@
   @keyframes floatSlow{0%,100%{transform:translate(0,0);}50%{transform:translate(30px,-24px);}}
   @keyframes floatSlow2{0%,100%{transform:translate(0,0);}50%{transform:translate(-26px,26px);}}
   .wrap{max-width:900px;margin:0 auto;padding:28px 20px 80px;position:relative;z-index:1;}
+  .wrap.gated{display:none;}
+
+  .gate-overlay{position:fixed;inset:0;background:var(--bg);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;}
+  .gate-overlay.hidden{display:none;}
+  .gate-box{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px 28px;max-width:360px;width:100%;position:relative;z-index:1;}
+  .gate-box h3{font-family:'Space Grotesk',sans-serif;margin:0 0 6px;text-align:center;}
+  .gate-box .field{margin:18px 0 6px;}
+  .gate-box input{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:12px 14px;border-radius:9px;font-size:14px;font-family:'IBM Plex Mono',monospace;outline:none;text-align:center;}
+  .gate-box input:focus{border-color:var(--accent);}
 
   /* header */
   .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px;}
@@ -147,7 +156,20 @@
 <body>
 <div class="bg-orb bg-orb-1"></div>
 <div class="bg-orb bg-orb-2"></div>
-<div class="wrap">
+
+<div class="gate-overlay" id="gateOverlay">
+  <div class="gate-box">
+    <div class="brand-mark" style="margin:0 auto 16px;">HD</div>
+    <h3 style="text-align:center;">Hub Escalation Directory</h3>
+    <p class="sub" style="text-align:center;">Flipkart employees only — enter your work email to continue.</p>
+    <div class="field">
+      <input type="email" id="gateEmailInput" name="work_email" placeholder="you@flipkart.com" autocomplete="off">
+    </div>
+    <div class="err-msg" id="gateErr">That doesn't look like a @flipkart.com email.</div>
+    <button class="btn btn-primary" style="width:100%;" id="gateSubmitBtn">Continue</button>
+  </div>
+</div>
+<div class="wrap gated" id="mainWrap">
 
   <div class="topbar">
     <div class="brand">
@@ -172,7 +194,7 @@
   </div>
 
   <div class="search-block">
-    <input type="text" class="search-input" id="searchInput" placeholder="Search hub name — Hub, Mother Hub, Central Hub, or Satellite Hub" autocomplete="off">
+    <input type="text" class="search-input" id="searchInput" name="hub_search_query" placeholder="Search hub name — Hub, Mother Hub, Central Hub, or Satellite Hub" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
     <span class="search-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span>
     <div class="suggest" id="suggest"></div>
   </div>
@@ -194,7 +216,7 @@
       <p class="sub">Required to update the hub / mother-hub data.</p>
       <div class="field">
         <label>Passcode</label>
-        <input type="password" id="passInput" placeholder="Enter passcode">
+        <input type="password" id="passInput" name="admin_passcode" placeholder="Enter passcode" autocomplete="off">
       </div>
       <div class="err-msg" id="passErr">Incorrect passcode.</div>
       <div class="btn-row">
@@ -222,11 +244,11 @@
       <p class="sub" style="margin-bottom:10px;">Publish so <b>everyone</b> sees the update — needs a GitHub token with write access to this repo's <code>data.json</code>.</p>
       <div class="field">
         <label>Repo (owner/name)</label>
-        <input type="text" id="repoInput" placeholder="rohiths3-2222/Escalation-Matrix" value="rohiths3-2222/Escalation-Matrix">
+        <input type="text" id="repoInput" name="github_repo_path" placeholder="rohiths3-2222/Escalation-Matrix" value="rohiths3-2222/Escalation-Matrix" autocomplete="off">
       </div>
       <div class="field">
         <label>GitHub token (used only in this browser, never stored)</label>
-        <input type="password" id="tokenInput" placeholder="ghp_...">
+        <input type="password" id="tokenInput" name="github_pat_token" placeholder="ghp_..." autocomplete="off">
       </div>
       <div class="err-msg" id="publishErr"></div>
       <div class="btn-row">
@@ -656,8 +678,36 @@ document.getElementById('publishBtn').onclick = async ()=>{
   }
 };
 
-/* ============ INIT ============ */
-loadData();
+/* ============ VIEW ACCESS GATE ============ */
+// Soft check only: confirms the entered address ends in @flipkart.com, but does NOT verify
+// the person actually owns that email (no real login/verification happens). This blocks
+// casual public visitors but not someone who deliberately types a fake flipkart.com address.
+const ALLOWED_DOMAIN = "@flipkart.com";
+const GATE_STORAGE_KEY = "hubDirectoryUnlockedEmail";
+
+function unlockApp(){
+  document.getElementById('gateOverlay').classList.add('hidden');
+  document.getElementById('mainWrap').classList.remove('gated');
+  loadData();
+}
+(function initGate(){
+  if(localStorage.getItem(GATE_STORAGE_KEY)){
+    unlockApp();
+    return;
+  }
+  document.getElementById('gateSubmitBtn').onclick = ()=>{
+    const val = document.getElementById('gateEmailInput').value.trim().toLowerCase();
+    if(val.endsWith(ALLOWED_DOMAIN) && val.length > ALLOWED_DOMAIN.length){
+      localStorage.setItem(GATE_STORAGE_KEY, val);
+      unlockApp();
+    }else{
+      document.getElementById('gateErr').style.display = 'block';
+    }
+  };
+  document.getElementById('gateEmailInput').addEventListener('keydown', e=>{
+    if(e.key === 'Enter') document.getElementById('gateSubmitBtn').click();
+  });
+})();
 </script>
 </body>
 </html>
