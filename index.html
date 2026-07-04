@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hub Escalation Directory</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230F1613'/%3E%3Ccircle cx='32' cy='32' r='7' fill='%237ED957'/%3E%3Ccircle cx='14' cy='16' r='5' fill='%237ED957' opacity='0.85'/%3E%3Ccircle cx='50' cy='16' r='5' fill='%237ED957' opacity='0.85'/%3E%3Ccircle cx='14' cy='48' r='5' fill='%237ED957' opacity='0.85'/%3E%3Ccircle cx='50' cy='48' r='5' fill='%237ED957' opacity='0.85'/%3E%3Cpath d='M27 27L18 19M37 27l9-8M27 37l-9 8M37 37l9 8' stroke='%237ED957' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -15,8 +16,8 @@
     --border:#2A353B;
     --text:#E9EEF0;
     --text-dim:#8FA0A7;
-    --accent:#FF7A1A;
-    --accent-dim:#4A3220;
+    --accent:#7ED957;
+    --accent-dim:#1E3320;
     --live:#2DD4A7;
     --live-dim:#173832;
     --danger:#FF5C5C;
@@ -28,7 +29,7 @@
   /* header */
   .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px;}
   .brand{display:flex;align-items:center;gap:10px;}
-  .brand-mark{width:34px;height:34px;border-radius:8px;background:linear-gradient(155deg,var(--accent),#B8500E);display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-weight:700;color:#0F1417;font-size:15px;flex-shrink:0;}
+  .brand-mark{width:34px;height:34px;border-radius:8px;background:linear-gradient(155deg,var(--accent),#3E8A2C);display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-weight:700;color:#0F1417;font-size:15px;flex-shrink:0;}
   .brand-text h1{font-family:'Space Grotesk',sans-serif;font-size:16px;margin:0;letter-spacing:0.2px;}
   .brand-text p{margin:1px 0 0;font-size:11.5px;color:var(--text-dim);}
   .admin-btn{background:var(--surface);border:1px solid var(--border);color:var(--text-dim);font-size:12px;padding:8px 12px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:'Inter',sans-serif;transition:border-color .15s;}
@@ -37,7 +38,15 @@
   /* status strip */
   .status-strip{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;font-family:'IBM Plex Mono',monospace;font-size:11px;}
   .chip{background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:5px 11px;color:var(--text-dim);display:flex;align-items:center;gap:6px;}
-  .chip .dot{width:6px;height:6px;border-radius:50%;background:var(--live);box-shadow:0 0 0 3px var(--live-dim);}
+  .chip .dot{width:6px;height:6px;border-radius:50%;background:var(--live);box-shadow:0 0 0 3px var(--live-dim);animation:pulseDot 2.2s infinite;}
+
+  @keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes pulseDot{0%,100%{box-shadow:0 0 0 3px var(--live-dim);}70%{box-shadow:0 0 0 7px rgba(45,212,167,0);}}
+  @keyframes resultIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+  .topbar{animation:fadeUp .5s ease both;}
+  .status-strip{animation:fadeUp .5s ease .1s both;}
+  .search-block{animation:fadeUp .5s ease .2s both;}
+  .hint{animation:fadeUp .5s ease .28s both;}
 
   /* search */
   .search-block{position:relative;margin-bottom:8px;}
@@ -69,9 +78,12 @@
   .rung-name{font-family:'Space Grotesk',sans-serif;font-size:15.5px;font-weight:600;margin-bottom:6px;}
   .rung.empty .rung-name{color:var(--text-dim);font-family:'Inter',sans-serif;font-weight:400;font-style:italic;font-size:13.5px;}
   .rung-contacts{display:flex;gap:14px;flex-wrap:wrap;}
+  .contact-line{display:flex;align-items:center;gap:4px;}
   .contact-link{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--text-dim);text-decoration:none;font-family:'IBM Plex Mono',monospace;padding:4px 0;transition:color .15s;}
   .contact-link:hover{color:var(--live);}
   .contact-link svg{flex-shrink:0;}
+  .copy-btn{background:none;border:none;color:var(--text-dim);cursor:pointer;padding:4px;display:flex;align-items:center;border-radius:6px;transition:color .15s,background .15s;}
+  .copy-btn:hover{color:var(--accent);background:var(--accent-dim);}
 
   /* mother hub grid */
   .mh-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
@@ -141,10 +153,12 @@
     <div class="chip"><span class="dot"></span><span id="statusUpdated">loading…</span></div>
     <div class="chip" id="statusHubCount">— hubs</div>
     <div class="chip" id="statusMHCount">— mother hubs</div>
+    <div class="chip" id="statusCentralCount">— central hubs</div>
+    <div class="chip" id="statusSatCount">— satellite hubs</div>
   </div>
 
   <div class="search-block">
-    <input type="text" class="search-input" id="searchInput" placeholder="Search hub name — e.g. SitamarhiHub_SMI or MotherHub_HJR" autocomplete="off">
+    <input type="text" class="search-input" id="searchInput" placeholder="Search hub name — Hub, Mother Hub, Central Hub, or Satellite Hub" autocomplete="off">
     <span class="search-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span>
     <div class="suggest" id="suggest"></div>
   </div>
@@ -177,7 +191,7 @@
 
     <div id="uploadStage" style="display:none;">
       <h3>Update directory data</h3>
-      <p class="sub">Upload the master Excel file — it must contain a "Hubs" sheet and a "MotherHubs" sheet.</p>
+      <p class="sub">Upload the master Excel file — it must contain a "Hubs" sheet, a "Mother Hubs" sheet, a "Central Hubs" sheet, and a "Satellite Hubs" sheet.</p>
 
       <div class="file-drop" id="fileDrop">
         <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
@@ -194,7 +208,7 @@
       <p class="sub" style="margin-bottom:10px;">Publish so <b>everyone</b> sees the update — needs a GitHub token with write access to this repo's <code>data.json</code>.</p>
       <div class="field">
         <label>Repo (owner/name)</label>
-        <input type="text" id="repoInput" placeholder="e.g. reddyn-blip/manifest-watch">
+        <input type="text" id="repoInput" placeholder="rohiths3-2222/Escalation-Matrix" value="rohiths3-2222/Escalation-Matrix">
       </div>
       <div class="field">
         <label>GitHub token (used only in this browser, never stored)</label>
@@ -218,8 +232,8 @@ const PASSCODE_HASH = "cb36b76d78c0e6779c39dd1819d9124e73dfce207bfb1b90b9d0feb1a
 const DATA_URL = "./data.json"; // fetched fresh on every load (cache-busted)
 
 /* ============ STATE ============ */
-let DB = { meta:{}, hubs:[], motherHubs:[] };
-let pendingParsed = null; // {hubs, motherHubs} from a freshly uploaded file, before publish
+let DB = { meta:{}, hubs:[], motherHubs:[], centralHubs:[], satelliteHubs:[] };
+let pendingParsed = null; // {hubs, motherHubs, centralHubs, satelliteHubs} from a freshly uploaded file, before publish
 
 /* ============ UTIL ============ */
 function toast(msg, ms=2600){
@@ -255,7 +269,7 @@ async function loadData(){
     DB = await res.json();
   }catch(e){
     toast('Could not load data.json — check it exists next to index.html');
-    DB = {meta:{lastUpdated:null}, hubs:[], motherHubs:[]};
+    DB = {meta:{lastUpdated:null}, hubs:[], motherHubs:[], centralHubs:[], satelliteHubs:[]};
   }
   renderStatus();
 }
@@ -264,6 +278,8 @@ function renderStatus(){
   document.getElementById('statusUpdated').textContent = upd ? 'updated ' + upd.toLocaleDateString(undefined,{day:'2-digit',month:'short'}) + ' ' + upd.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'}) : 'no data loaded';
   document.getElementById('statusHubCount').textContent = (DB.hubs||[]).length + ' hubs';
   document.getElementById('statusMHCount').textContent = (DB.motherHubs||[]).length + ' mother hubs';
+  document.getElementById('statusCentralCount').textContent = (DB.centralHubs||[]).length + ' central hubs';
+  document.getElementById('statusSatCount').textContent = (DB.satelliteHubs||[]).length + ' satellite hubs';
 }
 
 /* ============ SEARCH ============ */
@@ -274,7 +290,9 @@ let activeIdx = -1;
 function allNames(){
   const hubs = (DB.hubs||[]).map(h=>({name:h.hub, type:'hub'}));
   const mhs = (DB.motherHubs||[]).map(m=>({name:m.hub, type:'motherhub'}));
-  return [...mhs, ...hubs];
+  const centrals = (DB.centralHubs||[]).map(c=>({name:c.hub, type:'centralhub'}));
+  const sats = (DB.satelliteHubs||[]).map(s=>({name:s.hub, type:'satellitehub'}));
+  return [...mhs, ...centrals, ...sats, ...hubs];
 }
 searchInput.addEventListener('input', ()=>{
   const q = searchInput.value.trim().toLowerCase();
@@ -285,7 +303,7 @@ searchInput.addEventListener('input', ()=>{
   suggestBox.innerHTML = matches.map((m,i)=>`
     <div class="suggest-item" data-idx="${i}" data-name="${esc(m.name)}" data-type="${m.type}">
       <span>${esc(m.name)}</span>
-      <span class="suggest-tag">${m.type==='motherhub'?'Mother Hub':'Hub'}</span>
+      <span class="suggest-tag">${({motherhub:'Mother Hub',centralhub:'Central Hub',satellitehub:'Satellite Hub'})[m.type] || 'Hub'}</span>
     </div>`).join('');
   suggestBox.classList.add('open');
   [...suggestBox.children].forEach(el=>{
@@ -327,16 +345,31 @@ function renderResult(name, type){
   const area = document.getElementById('resultArea');
   if(type === 'motherhub'){
     const m = (DB.motherHubs||[]).find(x=>x.hub === name);
-    area.innerHTML = motherHubHTML(m);
+    area.innerHTML = zoneTeamHTML(m, 'Mother Hub');
+  }else if(type === 'centralhub'){
+    const c = (DB.centralHubs||[]).find(v=>v.hub === name);
+    area.innerHTML = zoneTeamHTML(c, 'Central Hub');
+  }else if(type === 'satellitehub'){
+    const s = (DB.satelliteHubs||[]).find(v=>v.hub === name);
+    area.innerHTML = hubHTML(s, 'Satellite Hub');
   }else{
     const h = (DB.hubs||[]).find(x=>x.hub === name);
-    area.innerHTML = hubHTML(h);
+    area.innerHTML = hubHTML(h, 'Hub');
   }
+}
+const COPY_SVG = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+function copyBtn(text){
+  const safe = esc(text).replace(/"/g,'&quot;');
+  return `<button class="copy-btn" data-copy="${safe}" onclick="copyValue(this)" aria-label="Copy">${COPY_SVG}</button>`;
+}
+function copyValue(btn){
+  const val = btn.getAttribute('data-copy');
+  navigator.clipboard.writeText(val).then(()=>toast('Copied: ' + val)).catch(()=>toast('Could not copy'));
 }
 function contactLink(mail, phone){
   let out = '';
-  if(isReal(mail)) out += `<a class="contact-link" href="mailto:${esc(mail)}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/></svg>${esc(mail)}</a>`;
-  if(isReal(phone)) out += `<a class="contact-link" href="tel:${esc(phone)}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>${esc(phone)}</a>`;
+  if(isReal(mail)) out += `<span class="contact-line"><a class="contact-link" href="mailto:${esc(mail)}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/></svg>${esc(mail)}</a>${copyBtn(mail)}</span>`;
+  if(isReal(phone)) out += `<span class="contact-line"><a class="contact-link" href="tel:${esc(phone)}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>${esc(phone)}</a>${copyBtn(phone)}</span>`;
   return out || '';
 }
 function rung(num, label, nameVal, mailVal, phoneVal){
@@ -351,12 +384,13 @@ function rung(num, label, nameVal, mailVal, phoneVal){
       </div>
     </div>`;
 }
-function hubHTML(h){
+function hubHTML(h, badgeLabel='Hub'){
   if(!h) return emptyState();
   return `
+    <div style="animation:resultIn .35s ease both;">
     <div class="result-head">
       <h2>${esc(h.hub)}</h2>
-      <span class="result-type">Hub</span>
+      <span class="result-type">${esc(badgeLabel)}</span>
     </div>
     <div class="ladder">
       ${rung(1,'Level 1 — HI / TL / HMT', h.l1_name, h.l1_mail, h.l1_phone)}
@@ -364,6 +398,7 @@ function hubHTML(h){
       ${rung(3,'Level 3 — RM / Regional Manager', h.l3_name, h.l3_mail, h.l3_phone)}
       ${rung(4,'Level 4 — GM / General Manager', h.l4_name, h.l4_mail, h.l4_phone)}
       ${rung('E','External AM', h.ext_name || h.ext_spoc, h.ext_mail, h.ext_phone)}
+    </div>
     </div>`;
 }
 function mhCard(label, name, mail, wide=false){
@@ -372,15 +407,16 @@ function mhCard(label, name, mail, wide=false){
     <div class="mh-card ${wide?'wide':''}">
       <div class="mh-label">${esc(label)}</div>
       <div class="mh-name ${filled?'':'empty'}">${filled ? esc(name || '—') : 'Not assigned'}</div>
-      ${isReal(mail) ? `<a class="mh-mail" href="mailto:${esc(mail)}">${esc(mail)}</a>` : ''}
+      ${isReal(mail) ? `<span class="contact-line"><a class="mh-mail" href="mailto:${esc(mail)}">${esc(mail)}</a>${copyBtn(mail)}</span>` : ''}
     </div>`;
 }
-function motherHubHTML(m){
+function zoneTeamHTML(m, badgeLabel){
   if(!m) return emptyState();
   return `
+    <div style="animation:resultIn .35s ease both;">
     <div class="result-head">
       <h2>${esc(m.hub)}</h2>
-      <span class="result-type">Mother Hub</span>
+      <span class="result-type">${esc(badgeLabel)}</span>
     </div>
     <div class="mh-grid">
       ${mhCard('Zone', m.zone, null)}
@@ -392,6 +428,7 @@ function motherHubHTML(m){
       ${mhCard('POC', m.poc_name, m.poc_mail)}
       ${mhCard('IRT POC', m.irt_name, m.irt_mail)}
       ${mhCard('Group Mail', null, m.group_mail, true)}
+    </div>
     </div>`;
 }
 function emptyState(){
@@ -404,7 +441,7 @@ function emptyState(){
 document.getElementById('resultArea').innerHTML = `<div class="empty-state">
   <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 11l18-8-8 18-2-8-8-2z"/></svg>
   <p class="big">Search a hub to begin</p>
-  <p>Try a Hub name (Level 1–4 + External AM) or a Mother Hub name (Zone team).</p>
+  <p>One search box for everything — Hub, Mother Hub, Central Hub, and Satellite Hub.</p>
 </div>`;
 
 /* ============ ADMIN MODAL ============ */
@@ -452,7 +489,7 @@ fileInput.onchange = ()=>{
       pendingParsed = parseWorkbook(wb);
       document.getElementById('previewOnlyBtn').disabled = false;
       document.getElementById('publishBtn').disabled = false;
-      toast(`Parsed ${pendingParsed.hubs.length} hubs, ${pendingParsed.motherHubs.length} mother hubs`);
+      toast(`Parsed ${pendingParsed.hubs.length} hubs, ${pendingParsed.motherHubs.length} mother hubs, ${pendingParsed.centralHubs.length} central hubs, ${pendingParsed.satelliteHubs.length} satellite hubs`);
     }catch(err){
       toast('Could not read that file: ' + err.message);
     }
@@ -466,23 +503,8 @@ function sheetToRows(wb, nameGuesses, excludeNames){
   if(!sheetName) return null;
   return {name: sheetName, rows: XLSX.utils.sheet_to_json(wb.Sheets[sheetName], {defval:''})};
 }
-function parseWorkbook(wb){
-  // Mother-hub sheet first, since it's the more specific/unique name (e.g. "MotherHubs" also contains "hub").
-  const mhFound = sheetToRows(wb, ['mother', 'zone']);
-  const mhSheetName = mhFound ? mhFound.name : null;
-  let mhRows = mhFound ? mhFound.rows : [];
-
-  const hubFound = sheetToRows(wb, ['hub'], mhSheetName ? [mhSheetName] : []);
-  let hubRows = hubFound ? hubFound.rows : (wb.SheetNames[0] && wb.SheetNames[0] !== mhSheetName ? XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval:''}) : []);
-
-  // if mother-hub sheet still not found, try a looser "mh" match, excluding whichever sheet we used for hubs
-  if(!mhFound){
-    const hubSheetName = hubFound ? hubFound.name : wb.SheetNames[0];
-    const mhFallback = sheetToRows(wb, ['mh'], hubSheetName ? [hubSheetName] : []);
-    if(mhFallback) mhRows = mhFallback.rows;
-  }
-
-  const hubs = hubRows.map(row=>{
+function mapHubRows(rows){
+  return rows.map(row=>{
     const headers = Object.keys(row);
     const get = (all, any)=>{ const c = findCol(headers, all, any); return c ? row[c] : ''; };
     return {
@@ -505,12 +527,13 @@ function parseWorkbook(wb){
       ext_spoc: get(['spoc'],['ext']),
     };
   }).filter(h=>h.hub);
-
-  const motherHubs = mhRows.map(row=>{
+}
+function mapZoneRows(rows){
+  return rows.map(row=>{
     const headers = Object.keys(row);
     const get = (all, any)=>{ const c = findCol(headers, all, any); return c ? row[c] : ''; };
     return {
-      hub: get(['hub','name']) || get(['motherhub']) || get(['hub']),
+      hub: get(['hub','name']) || get(['hub']),
       zone: get(['zone']),
       zm_name: get(['name'],['zm']),
       zm_mail: get(['mail'],['zm']),
@@ -521,15 +544,29 @@ function parseWorkbook(wb){
       sc_name: get(['name'],['sc']),
       leader_name: get(['name'],['leader']),
       leader_mail: get(['mail'],['leader']),
-      poc_name: get(['name'],['poc']) && !findCol(headers,['name'],['irt']) ? get(['name'],['poc']) : get(['name'],['poc']),
+      poc_name: get(['name'],['poc']),
       poc_mail: get(['mail'],['poc']),
       irt_name: get(['name'],['irt']),
       irt_mail: get(['mail'],['irt']),
       group_mail: get(['group','mail']),
     };
   }).filter(m=>m.hub);
+}
+function parseWorkbook(wb){
+  // Four real sheets. Detect the most specific-named ones first (central / satellite / mother),
+  // since every sheet's name also contains the substring "hub".
+  const centralFound = sheetToRows(wb, ['central']);
+  const satelliteFound = sheetToRows(wb, ['satellite']);
+  const motherFound = sheetToRows(wb, ['mother'], [centralFound?.name, satelliteFound?.name].filter(Boolean));
+  const usedNames = [centralFound?.name, satelliteFound?.name, motherFound?.name].filter(Boolean);
+  const hubFound = sheetToRows(wb, ['hub'], usedNames) || (wb.SheetNames[0] && !usedNames.includes(wb.SheetNames[0]) ? {rows: XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval:''})} : null);
 
-  return {hubs, motherHubs};
+  const hubs = mapHubRows(hubFound ? hubFound.rows : []);
+  const satelliteHubs = mapHubRows(satelliteFound ? satelliteFound.rows : []);
+  const motherHubs = mapZoneRows(motherFound ? motherFound.rows : []);
+  const centralHubs = mapZoneRows(centralFound ? centralFound.rows : []);
+
+  return {hubs, motherHubs, centralHubs, satelliteHubs};
 }
 
 document.getElementById('previewOnlyBtn').onclick = ()=>{
@@ -537,7 +574,9 @@ document.getElementById('previewOnlyBtn').onclick = ()=>{
   DB = {
     meta:{ lastUpdated: new Date().toISOString(), note:'local preview only' },
     hubs: pendingParsed.hubs,
-    motherHubs: pendingParsed.motherHubs
+    motherHubs: pendingParsed.motherHubs,
+    centralHubs: pendingParsed.centralHubs,
+    satelliteHubs: pendingParsed.satelliteHubs
   };
   renderStatus();
   closeAdmin();
@@ -567,9 +606,11 @@ document.getElementById('publishBtn').onclick = async ()=>{
     if(getRes.ok){ const j = await getRes.json(); sha = j.sha; }
 
     const newData = {
-      meta:{ lastUpdated: new Date().toISOString(), hubCount: pendingParsed.hubs.length, motherHubCount: pendingParsed.motherHubs.length },
+      meta:{ lastUpdated: new Date().toISOString(), hubCount: pendingParsed.hubs.length, motherHubCount: pendingParsed.motherHubs.length, centralHubCount: pendingParsed.centralHubs.length, satelliteHubCount: pendingParsed.satelliteHubs.length },
       hubs: pendingParsed.hubs,
-      motherHubs: pendingParsed.motherHubs
+      motherHubs: pendingParsed.motherHubs,
+      centralHubs: pendingParsed.centralHubs,
+      satelliteHubs: pendingParsed.satelliteHubs
     };
     const content = btoa(unescape(encodeURIComponent(JSON.stringify(newData, null, 2))));
 
